@@ -70,6 +70,7 @@ function display($repos) {
     exit;
 }
 
+
 function badge($repos) {
 
     $env    = $repos->first()->envs->first();
