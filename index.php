@@ -15,6 +15,8 @@ $cache      = getenv('CACHE');
 $repo_id    = $request->segment(1);
 $env_id     = $request->segment(2);
 $badge      = $request->segment(3) === 'badge.svg';
+$format     = $request->query('format', 'flat');
+
 
 $path = __DIR__ .'/'. $cache;
 
@@ -71,7 +73,7 @@ function display($repos) {
 }
 
 
-function badge($repos) {
+function badge($repos, $format) {
 
     $env    = $repos->first()->envs->first();
 
@@ -80,11 +82,15 @@ function badge($repos) {
     $name   = $env->name;
     $ver    = ver($env);
 
-    $render = new PUGX\Poser\Render\SvgRender();
-    $poser = new PUGX\Poser\Poser(array($render));
+    $renderFormats = [
+        new PUGX\Poser\Render\SvgRender(),
+        new PUGX\Poser\Render\SvgFlatSquareRender(),
+        new PUGX\Poser\Render\SvgFlatRender(),
+    ];
+    $poser = new PUGX\Poser\Poser($renderFormats);
 
     header('Content-Type: image/svg+xml');
-    echo $poser->generate($name, $ver, '428F7E', 'plastic');
+    echo $poser->generate($name, $ver, '428F7E', $format);
     exit;
 }
 
@@ -103,7 +109,7 @@ if ($repo_id) {
         });
 
         if ($badge) {
-            badge($repos);
+            badge($repos, $format);
         }
 
     }
