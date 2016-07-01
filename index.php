@@ -8,27 +8,36 @@ $request = Illuminate\Http\Request::capture();
 $dotenv = new Dotenv\Dotenv(__DIR__);
 $dotenv->load();
 
-
-$path = __DIR__ . '/cache/';
-
-$filestore = new \Illuminate\Cache\FileStore(
-    new \Illuminate\Filesystem\Filesystem(),
-    $path
-);
-
-
-$cache = new \Illuminate\Cache\Repository($filestore);
-
-$account   = getenv('ACCOUNT');
+$account    = getenv('ACCOUNT');
 $api_key    = getenv('API_KEY');
+$cache      = getenv('CACHE');
 
-$repos = $cache->get('repos', null);
+$repo_id    = $request->segment(1);
+$env_id     = $request->segment(2);
+$badge      = $request->segment(3) === 'badge.svg';
 
-if (is_null($repos)) {
+$path = __DIR__ .'/'. $cache;
 
+$filesystem =  new \Illuminate\Filesystem\Filesystem();
+
+if ($filesystem->isWritable($path)) {
+    $filestore = new \Illuminate\Cache\FileStore($filesystem, $path);
+
+    $cache = new \Illuminate\Cache\Repository($filestore);
+
+    $repos = $cache->get('repos', null);
+
+    if (is_null($repos)) {
+        $repos = getRepos($api_key, $account);
+        $cache->put('repos', $repos, 10);
+    }
+} else {
+    $repos = getRepos($api_key, $account);
+}
+
+function getRepos($api_key, $account) {
     $db = new Jaybizzle\DeployBot($api_key, $account);
 
-    // get all users
     $repos = $db->getRepositories();
     $repos = collect($repos->entries);
 
@@ -39,12 +48,9 @@ if (is_null($repos)) {
         $repo->envs = $envs->where('repository_id', $repo->id);
     });
 
-    $cache->put('repos', $repos, 10);
-}
+    return $repos;
 
-$repo_id    = $request->segment(1);
-$env_id     = $request->segment(2);
-$badge      = $request->segment(3) === 'badge.svg';
+}
 
 function ver($env) {
     return substr($env->current_version, 0, 8);
