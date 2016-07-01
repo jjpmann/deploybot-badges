@@ -1,0 +1,14 @@
+{
+    "autoload": {
+         "files":  ["vendor/illuminate/support/helpers.php"]
+    },
+    "require": {
+        "vlucas/phpdotenv": "^2.3",
+        "jaybizzle/deploybot-api": "^1.0",
+        "illuminate/support": "^5.2",
+        "illuminate/cache": "^5.2",
+        "illuminate/filesystem": "^5.2",
+        "Illuminate/Http": "^5.2",
+        "badges/poser": "^1.2"
+    }
+}
