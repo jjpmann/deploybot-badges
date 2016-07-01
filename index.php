@@ -83,6 +83,7 @@ function badge($repos) {
     $render = new PUGX\Poser\Render\SvgRender();
     $poser = new PUGX\Poser\Poser(array($render));
 
+    header('Content-Type: image/svg+xml');
     echo $poser->generate($name, $ver, '428F7E', 'plastic');
     exit;
 }
