@@ -58,11 +58,11 @@ function ver($env) {
 
 function display($repos) {
     $repos->each(function($repo){
-        echo "<h2>$repo->name: $repo->id</h2>";
+        echo "<h2>$repo->name: <a href=\"/{$repo->id}\">{$repo->id}</a></h2>";
         echo "<dl>";
-        $repo->envs->each(function($env){
+        $repo->envs->each(function($env) use ($repo) {
             $ver = ver($env);
-            echo "<dt>{$env->name}: {$env->id}</dt><dd>{$ver}</dd>";
+            echo "<dt>{$env->name}: <a href=\"/{$repo->id}/{$env->id}/badge.svg\">{$env->id}</a></dt><dd>{$ver}</dd>";
             //echo "<pre>" . print_r($env,true) . "</pre>";
         });
         echo "</dl>";
