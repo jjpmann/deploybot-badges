@@ -16,6 +16,29 @@ $repo_id    = $request->segment(1);
 $env_id     = $request->segment(2);
 $badge      = $request->segment(3) === 'badge.svg';
 $format     = $request->query('format', 'flat');
+$live       = $request->query('live');
+$color      = $request->query('color', false);
+
+function getColor($color) {
+    $colors = [
+        'green'     => '42CF2E',
+        'blue'      => '2C2CCF',
+        'pink'      => 'CF326B',
+        'orange'    => 'CF6D01',
+        'red'       => 'FF000F',
+    ];
+    if (isset($colors[$color])) {
+        return $colors[$color];
+    }
+    return '428F7E';
+}
+
+if ($live === null) {
+    $new = $request->fullUrlWithQuery(['live'=>true]);
+    header("Location: {$new}",TRUE,301);
+    exit;
+}
+
 
 
 $path = __DIR__ .'/'. $cache;
@@ -54,6 +77,18 @@ function getRepos($api_key, $account) {
 
 }
 
+function addHeaders() {
+    $dt = new DateTime('GMT');
+    Header('Access-Control-Allow-Credentials:true');
+    Header('Access-Control-Allow-Origin:*');
+    Header('Access-Control-Expose-Headers:Content-Type, Cache-Control, Expires, Etag, Last-Modified');
+    Header('Content-Type: image/svg+xml');
+    Header('Cache-Control: no-cache');
+    Header('Pragma: no-cache');
+    Header('Expires: '. $dt->format('D, M, j Y G:i:s T'));
+    Header('Etag: "' . md5(time()) . '"');
+}
+
 function ver($env) {
     return substr($env->current_version, 0, 8);
 }
@@ -73,7 +108,7 @@ function display($repos) {
 }
 
 
-function badge($repos, $format) {
+function badge($repos, $format, $color) {
 
     $env    = $repos->first()->envs->first();
 
@@ -89,8 +124,9 @@ function badge($repos, $format) {
     ];
     $poser = new PUGX\Poser\Poser($renderFormats);
 
-    header('Content-Type: image/svg+xml');
-    echo $poser->generate($name, $ver, '428F7E', $format);
+    addHeaders();
+
+    echo $poser->generate($name, $ver, $color, $format);
     exit;
 }
 
@@ -109,7 +145,7 @@ if ($repo_id) {
         });
 
         if ($badge) {
-            badge($repos, $format);
+            badge($repos, $format, getColor($color));
         }
 
     }
